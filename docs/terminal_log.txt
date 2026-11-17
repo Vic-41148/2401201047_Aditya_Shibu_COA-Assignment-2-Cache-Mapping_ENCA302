@@ -1,0 +1,351 @@
+$ g++ -std=c++17 -O2 -Wall -Wextra main.cpp -o cache_sim
+$ ./cache_sim
+================================================================================================
+ QUESTION 2 : CACHE MAPPING SIMULATION
+ Direct-Mapped  vs  Set-Associative  vs  Fully Associative
+================================================================================================
+ Cache blocks    : 4   (block size = 1 block, so 1 request = 1 block)
+ Memory requests : 0, 4, 8, 0, 4, 12
+ Replacement     : LRU inside each set
+ Mapping rule    : set = (block number) mod (number of sets)
+
+------------------------------------------------------------------------------------------------
+1) DIRECT-MAPPED CACHE   (4 sets x 1 way)
+  Cache layout : 4 blocks = 4 set(s) x 1 way(s)   |   set = block mod 4
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0] S1[-] S2[-] S3[-]
+2   4        S0     W0     MISS    0         S0[4] S1[-] S2[-] S3[-]
+3   8        S0     W0     MISS    4         S0[8] S1[-] S2[-] S3[-]
+4   0        S0     W0     MISS    8         S0[0] S1[-] S2[-] S3[-]
+5   4        S0     W0     MISS    0         S0[4] S1[-] S2[-] S3[-]
+6   12       S0     W0     MISS    4         S0[12] S1[-] S2[-] S3[-]
+------------------------------------------------------------------------------------------------
+  Hits = 0   Misses = 6   Hit rate = 0.00%   Miss rate = 100.00%
+  Final state: S0[12] S1[-] S2[-] S3[-]
+
+------------------------------------------------------------------------------------------------
+2) 2-WAY SET-ASSOCIATIVE CACHE   (2 sets x 2 ways)
+  Cache layout : 4 blocks = 2 set(s) x 2 way(s)   |   set = block mod 2
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 -] S1[- -]
+2   4        S0     W1     MISS    -         S0[0 4] S1[- -]
+3   8        S0     W0     MISS    0         S0[8 4] S1[- -]
+4   0        S0     W1     MISS    4         S0[8 0] S1[- -]
+5   4        S0     W0     MISS    8         S0[4 0] S1[- -]
+6   12       S0     W1     MISS    0         S0[4 12] S1[- -]
+------------------------------------------------------------------------------------------------
+  Hits = 0   Misses = 6   Hit rate = 0.00%   Miss rate = 100.00%
+  Final state: S0[4 12] S1[- -]
+
+------------------------------------------------------------------------------------------------
+3) FULLY ASSOCIATIVE CACHE   (1 set x 4 ways)
+  Cache layout : 4 blocks = 1 set(s) x 4 way(s)   |   set = block mod 1  (any line can hold any block)
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 - - -]
+2   4        S0     W1     MISS    -         S0[0 4 - -]
+3   8        S0     W2     MISS    -         S0[0 4 8 -]
+4   0        S0     W0     HIT     -         S0[0 4 8 -]
+5   4        S0     W1     HIT     -         S0[0 4 8 -]
+6   12       S0     W3     MISS    -         S0[0 4 8 12]
+------------------------------------------------------------------------------------------------
+  Hits = 2   Misses = 4   Hit rate = 33.33%   Miss rate = 66.67%
+  Final state: S0[0 4 8 12]
+
+================================================================================================
+COMPARISON SUMMARY   (4 cache blocks, trace of 6 requests)
+================================================================================================
+Technique                 Sets x Ways  Hits    Misses   Hit rate   Miss rate  Evictions
+1) Direct-Mapped          4 x 1        0       6        0.00%      100.00%    5
+2) 2-Way Set-Associative  2 x 2        0       6        0.00%      100.00%    4
+3) Fully Associative      1 x 4        2       4        33.33%     66.67%     0
+================================================================================================
+BEST FOR THIS TRACE : 3) FULLY ASSOCIATIVE CACHE   (1 set x 4 ways)  (2 hits / 6 requests)
+================================================================================================
+
+WHY (brief explanation)
+-----------------------
+* Direct-mapped keeps exactly ONE line per set and the set is fixed by
+  (block mod sets).  Two blocks that map to the same set fight for that single
+  line, so the later request always throws the earlier one out.  This is a
+  CONFLICT MISS: the data may still be needed, but there is nowhere to keep it.
+
+* Full associativity lets a block live in ANY line of the cache, so the only
+  misses left are COMPULSORY (first touch) and CAPACITY misses.  It needs the
+  most comparators/hardware to search all ways, which is why real CPUs use it
+  only for small structures such as TLBs.
+
+* Set-associative mapping is the compromise: a block may go into any way of its
+  set, so a couple of colliding blocks can coexist, but the hardware only has to
+  compare `ways` tags instead of all `blocks` tags.
+
+In the example trace 0, 4, 8, 0, 4, 12 all blocks are multiples of 4, so every
+one of them maps to set 0 in the direct-mapped cache (mod 4) and also to set 0 in
+the 2-way cache (mod 2).  All six requests therefore pile onto one set and the
+caches thrash: 0 hits.  The fully associative cache spreads those same blocks
+over all 4 lines, so the repeats of 0 and 4 are served from the cache: 2 hits.
+=> For this access sequence the FULLY ASSOCIATIVE mapping gives the best
+   flexibility and the lowest miss rate; direct-mapped is the most rigid.
+
+$ ./cache_sim 4 0 4 0
+================================================================================================
+ QUESTION 2 : CACHE MAPPING SIMULATION
+ Direct-Mapped  vs  Set-Associative  vs  Fully Associative
+================================================================================================
+ Cache blocks    : 4   (block size = 1 block, so 1 request = 1 block)
+ Memory requests : 0, 4, 0
+ Replacement     : LRU inside each set
+ Mapping rule    : set = (block number) mod (number of sets)
+
+------------------------------------------------------------------------------------------------
+1) DIRECT-MAPPED CACHE   (4 sets x 1 way)
+  Cache layout : 4 blocks = 4 set(s) x 1 way(s)   |   set = block mod 4
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0] S1[-] S2[-] S3[-]
+2   4        S0     W0     MISS    0         S0[4] S1[-] S2[-] S3[-]
+3   0        S0     W0     MISS    4         S0[0] S1[-] S2[-] S3[-]
+------------------------------------------------------------------------------------------------
+  Hits = 0   Misses = 3   Hit rate = 0.00%   Miss rate = 100.00%
+  Final state: S0[0] S1[-] S2[-] S3[-]
+
+------------------------------------------------------------------------------------------------
+2) 2-WAY SET-ASSOCIATIVE CACHE   (2 sets x 2 ways)
+  Cache layout : 4 blocks = 2 set(s) x 2 way(s)   |   set = block mod 2
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 -] S1[- -]
+2   4        S0     W1     MISS    -         S0[0 4] S1[- -]
+3   0        S0     W0     HIT     -         S0[0 4] S1[- -]
+------------------------------------------------------------------------------------------------
+  Hits = 1   Misses = 2   Hit rate = 33.33%   Miss rate = 66.67%
+  Final state: S0[0 4] S1[- -]
+
+------------------------------------------------------------------------------------------------
+3) FULLY ASSOCIATIVE CACHE   (1 set x 4 ways)
+  Cache layout : 4 blocks = 1 set(s) x 4 way(s)   |   set = block mod 1  (any line can hold any block)
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 - - -]
+2   4        S0     W1     MISS    -         S0[0 4 - -]
+3   0        S0     W0     HIT     -         S0[0 4 - -]
+------------------------------------------------------------------------------------------------
+  Hits = 1   Misses = 2   Hit rate = 33.33%   Miss rate = 66.67%
+  Final state: S0[0 4 - -]
+
+================================================================================================
+COMPARISON SUMMARY   (4 cache blocks, trace of 3 requests)
+================================================================================================
+Technique                 Sets x Ways  Hits    Misses   Hit rate   Miss rate  Evictions
+1) Direct-Mapped          4 x 1        0       3        0.00%      100.00%    2
+2) 2-Way Set-Associative  2 x 2        1       2        33.33%     66.67%     0
+3) Fully Associative      1 x 4        1       2        33.33%     66.67%     0
+================================================================================================
+BEST FOR THIS TRACE : 2) 2-WAY SET-ASSOCIATIVE CACHE   (2 sets x 2 ways)  (1 hits / 3 requests)
+================================================================================================
+
+WHY (brief explanation)
+-----------------------
+* Direct-mapped keeps exactly ONE line per set and the set is fixed by
+  (block mod sets).  Two blocks that map to the same set fight for that single
+  line, so the later request always throws the earlier one out.  This is a
+  CONFLICT MISS: the data may still be needed, but there is nowhere to keep it.
+
+* Full associativity lets a block live in ANY line of the cache, so the only
+  misses left are COMPULSORY (first touch) and CAPACITY misses.  It needs the
+  most comparators/hardware to search all ways, which is why real CPUs use it
+  only for small structures such as TLBs.
+
+* Set-associative mapping is the compromise: a block may go into any way of its
+  set, so a couple of colliding blocks can coexist, but the hardware only has to
+  compare `ways` tags instead of all `blocks` tags.
+
+In the example trace 0, 4, 8, 0, 4, 12 all blocks are multiples of 4, so every
+one of them maps to set 0 in the direct-mapped cache (mod 4) and also to set 0 in
+the 2-way cache (mod 2).  All six requests therefore pile onto one set and the
+caches thrash: 0 hits.  The fully associative cache spreads those same blocks
+over all 4 lines, so the repeats of 0 and 4 are served from the cache: 2 hits.
+=> For this access sequence the FULLY ASSOCIATIVE mapping gives the best
+   flexibility and the lowest miss rate; direct-mapped is the most rigid.
+
+$ ./cache_sim 8 0 1 2 3 0 1 2 3
+================================================================================================
+ QUESTION 2 : CACHE MAPPING SIMULATION
+ Direct-Mapped  vs  Set-Associative  vs  Fully Associative
+================================================================================================
+ Cache blocks    : 8   (block size = 1 block, so 1 request = 1 block)
+ Memory requests : 0, 1, 2, 3, 0, 1, 2, 3
+ Replacement     : LRU inside each set
+ Mapping rule    : set = (block number) mod (number of sets)
+
+------------------------------------------------------------------------------------------------
+1) DIRECT-MAPPED CACHE   (8 sets x 1 way)
+  Cache layout : 8 blocks = 8 set(s) x 1 way(s)   |   set = block mod 8
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0] S1[-] S2[-] S3[-] S4[-] S5[-] S6[-] S7[-]
+2   1        S1     W0     MISS    -         S0[0] S1[1] S2[-] S3[-] S4[-] S5[-] S6[-] S7[-]
+3   2        S2     W0     MISS    -         S0[0] S1[1] S2[2] S3[-] S4[-] S5[-] S6[-] S7[-]
+4   3        S3     W0     MISS    -         S0[0] S1[1] S2[2] S3[3] S4[-] S5[-] S6[-] S7[-]
+5   0        S0     W0     HIT     -         S0[0] S1[1] S2[2] S3[3] S4[-] S5[-] S6[-] S7[-]
+6   1        S1     W0     HIT     -         S0[0] S1[1] S2[2] S3[3] S4[-] S5[-] S6[-] S7[-]
+7   2        S2     W0     HIT     -         S0[0] S1[1] S2[2] S3[3] S4[-] S5[-] S6[-] S7[-]
+8   3        S3     W0     HIT     -         S0[0] S1[1] S2[2] S3[3] S4[-] S5[-] S6[-] S7[-]
+------------------------------------------------------------------------------------------------
+  Hits = 4   Misses = 4   Hit rate = 50.00%   Miss rate = 50.00%
+  Final state: S0[0] S1[1] S2[2] S3[3] S4[-] S5[-] S6[-] S7[-]
+
+------------------------------------------------------------------------------------------------
+2) 2-WAY SET-ASSOCIATIVE CACHE   (4 sets x 2 ways)
+  Cache layout : 8 blocks = 4 set(s) x 2 way(s)   |   set = block mod 4
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 -] S1[- -] S2[- -] S3[- -]
+2   1        S1     W0     MISS    -         S0[0 -] S1[1 -] S2[- -] S3[- -]
+3   2        S2     W0     MISS    -         S0[0 -] S1[1 -] S2[2 -] S3[- -]
+4   3        S3     W0     MISS    -         S0[0 -] S1[1 -] S2[2 -] S3[3 -]
+5   0        S0     W0     HIT     -         S0[0 -] S1[1 -] S2[2 -] S3[3 -]
+6   1        S1     W0     HIT     -         S0[0 -] S1[1 -] S2[2 -] S3[3 -]
+7   2        S2     W0     HIT     -         S0[0 -] S1[1 -] S2[2 -] S3[3 -]
+8   3        S3     W0     HIT     -         S0[0 -] S1[1 -] S2[2 -] S3[3 -]
+------------------------------------------------------------------------------------------------
+  Hits = 4   Misses = 4   Hit rate = 50.00%   Miss rate = 50.00%
+  Final state: S0[0 -] S1[1 -] S2[2 -] S3[3 -]
+
+------------------------------------------------------------------------------------------------
+3) FULLY ASSOCIATIVE CACHE   (1 set x 8 ways)
+  Cache layout : 8 blocks = 1 set(s) x 8 way(s)   |   set = block mod 1  (any line can hold any block)
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 - - - - - - -]
+2   1        S0     W1     MISS    -         S0[0 1 - - - - - -]
+3   2        S0     W2     MISS    -         S0[0 1 2 - - - - -]
+4   3        S0     W3     MISS    -         S0[0 1 2 3 - - - -]
+5   0        S0     W0     HIT     -         S0[0 1 2 3 - - - -]
+6   1        S0     W1     HIT     -         S0[0 1 2 3 - - - -]
+7   2        S0     W2     HIT     -         S0[0 1 2 3 - - - -]
+8   3        S0     W3     HIT     -         S0[0 1 2 3 - - - -]
+------------------------------------------------------------------------------------------------
+  Hits = 4   Misses = 4   Hit rate = 50.00%   Miss rate = 50.00%
+  Final state: S0[0 1 2 3 - - - -]
+
+================================================================================================
+COMPARISON SUMMARY   (8 cache blocks, trace of 8 requests)
+================================================================================================
+Technique                 Sets x Ways  Hits    Misses   Hit rate   Miss rate  Evictions
+1) Direct-Mapped          8 x 1        4       4        50.00%     50.00%     0
+2) 2-Way Set-Associative  4 x 2        4       4        50.00%     50.00%     0
+3) Fully Associative      1 x 8        4       4        50.00%     50.00%     0
+================================================================================================
+BEST FOR THIS TRACE : 1) DIRECT-MAPPED CACHE   (8 sets x 1 way)  (4 hits / 8 requests)
+================================================================================================
+
+WHY (brief explanation)
+-----------------------
+* Direct-mapped keeps exactly ONE line per set and the set is fixed by
+  (block mod sets).  Two blocks that map to the same set fight for that single
+  line, so the later request always throws the earlier one out.  This is a
+  CONFLICT MISS: the data may still be needed, but there is nowhere to keep it.
+
+* Full associativity lets a block live in ANY line of the cache, so the only
+  misses left are COMPULSORY (first touch) and CAPACITY misses.  It needs the
+  most comparators/hardware to search all ways, which is why real CPUs use it
+  only for small structures such as TLBs.
+
+* Set-associative mapping is the compromise: a block may go into any way of its
+  set, so a couple of colliding blocks can coexist, but the hardware only has to
+  compare `ways` tags instead of all `blocks` tags.
+
+In the example trace 0, 4, 8, 0, 4, 12 all blocks are multiples of 4, so every
+one of them maps to set 0 in the direct-mapped cache (mod 4) and also to set 0 in
+the 2-way cache (mod 2).  All six requests therefore pile onto one set and the
+caches thrash: 0 hits.  The fully associative cache spreads those same blocks
+over all 4 lines, so the repeats of 0 and 4 are served from the cache: 2 hits.
+=> For this access sequence the FULLY ASSOCIATIVE mapping gives the best
+   flexibility and the lowest miss rate; direct-mapped is the most rigid.
+
+$ ./cache_sim 8 -a 4 0 1 0 1
+================================================================================================
+ QUESTION 2 : CACHE MAPPING SIMULATION
+ Direct-Mapped  vs  Set-Associative  vs  Fully Associative
+================================================================================================
+ Cache blocks    : 8   (block size = 1 block, so 1 request = 1 block)
+ Memory requests : 0, 1, 0, 1
+ Replacement     : LRU inside each set
+ Mapping rule    : set = (block number) mod (number of sets)
+
+------------------------------------------------------------------------------------------------
+1) DIRECT-MAPPED CACHE   (8 sets x 1 way)
+  Cache layout : 8 blocks = 8 set(s) x 1 way(s)   |   set = block mod 8
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0] S1[-] S2[-] S3[-] S4[-] S5[-] S6[-] S7[-]
+2   1        S1     W0     MISS    -         S0[0] S1[1] S2[-] S3[-] S4[-] S5[-] S6[-] S7[-]
+3   0        S0     W0     HIT     -         S0[0] S1[1] S2[-] S3[-] S4[-] S5[-] S6[-] S7[-]
+4   1        S1     W0     HIT     -         S0[0] S1[1] S2[-] S3[-] S4[-] S5[-] S6[-] S7[-]
+------------------------------------------------------------------------------------------------
+  Hits = 2   Misses = 2   Hit rate = 50.00%   Miss rate = 50.00%
+  Final state: S0[0] S1[1] S2[-] S3[-] S4[-] S5[-] S6[-] S7[-]
+
+------------------------------------------------------------------------------------------------
+2) 4-WAY SET-ASSOCIATIVE CACHE   (2 sets x 4 ways)
+  Cache layout : 8 blocks = 2 set(s) x 4 way(s)   |   set = block mod 2
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 - - -] S1[- - - -]
+2   1        S1     W0     MISS    -         S0[0 - - -] S1[1 - - -]
+3   0        S0     W0     HIT     -         S0[0 - - -] S1[1 - - -]
+4   1        S1     W0     HIT     -         S0[0 - - -] S1[1 - - -]
+------------------------------------------------------------------------------------------------
+  Hits = 2   Misses = 2   Hit rate = 50.00%   Miss rate = 50.00%
+  Final state: S0[0 - - -] S1[1 - - -]
+
+------------------------------------------------------------------------------------------------
+3) FULLY ASSOCIATIVE CACHE   (1 set x 8 ways)
+  Cache layout : 8 blocks = 1 set(s) x 8 way(s)   |   set = block mod 1  (any line can hold any block)
+------------------------------------------------------------------------------------------------
+#   Request  Set    Way    Result  Evicted   Cache contents after the access
+1   0        S0     W0     MISS    -         S0[0 - - - - - - -]
+2   1        S0     W1     MISS    -         S0[0 1 - - - - - -]
+3   0        S0     W0     HIT     -         S0[0 1 - - - - - -]
+4   1        S0     W1     HIT     -         S0[0 1 - - - - - -]
+------------------------------------------------------------------------------------------------
+  Hits = 2   Misses = 2   Hit rate = 50.00%   Miss rate = 50.00%
+  Final state: S0[0 1 - - - - - -]
+
+================================================================================================
+COMPARISON SUMMARY   (8 cache blocks, trace of 4 requests)
+================================================================================================
+Technique                 Sets x Ways  Hits    Misses   Hit rate   Miss rate  Evictions
+1) Direct-Mapped          8 x 1        2       2        50.00%     50.00%     0
+2) 4-Way Set-Associative  2 x 4        2       2        50.00%     50.00%     0
+3) Fully Associative      1 x 8        2       2        50.00%     50.00%     0
+================================================================================================
+BEST FOR THIS TRACE : 1) DIRECT-MAPPED CACHE   (8 sets x 1 way)  (2 hits / 4 requests)
+================================================================================================
+
+WHY (brief explanation)
+-----------------------
+* Direct-mapped keeps exactly ONE line per set and the set is fixed by
+  (block mod sets).  Two blocks that map to the same set fight for that single
+  line, so the later request always throws the earlier one out.  This is a
+  CONFLICT MISS: the data may still be needed, but there is nowhere to keep it.
+
+* Full associativity lets a block live in ANY line of the cache, so the only
+  misses left are COMPULSORY (first touch) and CAPACITY misses.  It needs the
+  most comparators/hardware to search all ways, which is why real CPUs use it
+  only for small structures such as TLBs.
+
+* Set-associative mapping is the compromise: a block may go into any way of its
+  set, so a couple of colliding blocks can coexist, but the hardware only has to
+  compare `ways` tags instead of all `blocks` tags.
+
+In the example trace 0, 4, 8, 0, 4, 12 all blocks are multiples of 4, so every
+one of them maps to set 0 in the direct-mapped cache (mod 4) and also to set 0 in
+the 2-way cache (mod 2).  All six requests therefore pile onto one set and the
+caches thrash: 0 hits.  The fully associative cache spreads those same blocks
+over all 4 lines, so the repeats of 0 and 4 are served from the cache: 2 hits.
+=> For this access sequence the FULLY ASSOCIATIVE mapping gives the best
+   flexibility and the lowest miss rate; direct-mapped is the most rigid.
