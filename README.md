@@ -1,7 +1,26 @@
-# COA Assignment 2: Q2 Cache Mapping Simulation (C++17)
+# COA Assignment 2: Cache Mapping Simulation (ENCA302)
 
-Simulation of a **4-block cache** that sends the same memory block trace
-through the three mapping techniques:
+K.R. Mangalam University, Gurugram, Haryana
+School of Engineering and Technology
+
+| Field | Details |
+|---|---|
+| Name | Aditya Shibu |
+| Roll No | 2401201047 |
+| Section | B |
+| Programme | BCA (AI&DS) |
+| School | SOET |
+| Course Title & Code | Introduction to Computer Organization and Architecture (ENCA302) |
+| Course Coordinator | Alina Banerjee |
+| Question | Assignment 2, Q2: Cache Mapping |
+| Status | Done, Assignment 2 ready for submission |
+
+This repo holds the COA application specific simulation for Assignment 2, Q2
+(attempt any ONE question, 5 marks). The simulation compares **Direct-Mapped**,
+**Set-Associative** and **Fully Associative** cache mapping on one memory block
+trace, in C++17.
+
+## What Q2 implements
 
 ```text
 Memory requests: 0, 4, 8, 0, 4, 12
@@ -14,7 +33,8 @@ Memory requests: 0, 4, 8, 0, 4, 12
 | Fully Associative | 1 set x 4 ways | `set = block mod 1` (any line) |
 
 All three techniques use one engine. A cache is `(blocks, ways)` and the set
-count is `blocks / ways`. Replacement inside a set is LRU.
+count is `blocks / ways`. Replacement inside a set is LRU. The number of ways is
+the `-a` argument, so the same binary also runs 4-way and 8-block cases.
 
 ## Result for the given trace
 
@@ -43,28 +63,46 @@ g++ -std=c++17 -O2 -Wall -Wextra main.cpp -o cache_sim
 `output.txt` is the captured run for the default trace. `docs/terminal_log.txt`
 holds the default run and the three extra verification runs.
 
-## Files
+## Structure
 
 ```text
-main.cpp                                   # simulation (362 lines)
-output.txt                                 # default run
-docs/terminal_log.txt                      # default and extra runs
-make_figure.py                             # Figure 1 in the report
-screenshots/                               # figure and terminal captures
-krmu_logo.png                              # report front page
-Aditya_Shibu_2401201047_COA_Assignment2.md # report source
-Aditya_Shibu_2401201047_COA_Assignment2.pdf# report (19 pages)
+.
+├── README.md                                  # you are here
+├── main.cpp                                   # simulation (362 lines)
+├── output.txt                                 # default run
+├── docs/terminal_log.txt                      # default and extra runs
+├── Aditya_Shibu_2401201047_COA_Assignment2.md # report source
+├── Aditya_Shibu_2401201047_COA_Assignment2.pdf# submission PDF (19 pp)
+├── krmu_logo.png                              # front page logo
+├── make_figure.py                             # Figure 1 drawing script
+└── screenshots/
+    ├── architecture.png   # Figure 1: the three mappings side by side
+    ├── shot_build.png     # build + run banner
+    ├── shot_direct.png    # direct-mapped table, 6 misses, 5 evictions
+    ├── shot_setassoc.png  # 2-way table, 6 misses, 4 evictions
+    ├── shot_full.png      # fully associative table, 2 hits, 0 evictions
+    ├── shot_summary.png   # comparison summary + best mapping
+    └── shot_check1.png    # trace 0 4 0: 2-way beats direct-mapped
 ```
 
 ## Report
 
-The report follows the Assignment 1 layout: question, design, results,
+The report follows the Assignment 1 layout: question, cache design, results,
 analysis, terminal evidence, full code listing, explanation, marking scheme
 and reproduction steps.
 
-`Aditya_Shibu_2401201047_COA_Assignment2.pdf`: 19 pages, 8 images.
+`Aditya_Shibu_2401201047_COA_Assignment2.pdf`, 19 pages, 8 images.
 
 The built PDF is committed next to the source.
+
+## Marking scheme (5)
+
+| Component | Marks |
+|---|---|
+| Correct Simulation Implementation | 2 |
+| Application of Memory/Cache Concept | 1 |
+| Correct Calculation or Performance Analysis | 1 |
+| Working Output and Explanation | 1 |
 
 ## Source hash
 

@@ -16,7 +16,7 @@
 </tr>
 </table>
 
-<p style="text-align: center;"><strong>GitHub repository:</strong> <a href="https://github.com/Vic-41148/COMPUTER-ORGANIZATION-AND-ARCHITECTURE">github.com/Vic-41148/COMPUTER-ORGANIZATION-AND-ARCHITECTURE</a></p>
+<p style="text-align: center;"><strong>GitHub repository:</strong> <a href="https://github.com/Vic-41148/2401201047_Aditya_Shibu_COA-Assignment-2-Cache-Mapping_ENCA302">github.com/Vic-41148/2401201047_Aditya_Shibu_COA-Assignment-2-Cache-Mapping_ENCA302</a></p>
 
 <div style="page-break-before: always;"></div>
 
@@ -753,8 +753,8 @@ traffic. This simulation shows neither.
 The report, the source and the captures live in the GitHub repository:
 
 ```bash
-git clone https://github.com/Vic-41148/COMPUTER-ORGANIZATION-AND-ARCHITECTURE.git
-cd COMPUTER-ORGANIZATION-AND-ARCHITECTURE
+git clone https://github.com/Vic-41148/2401201047_Aditya_Shibu_COA-Assignment-2-Cache-Mapping_ENCA302.git
+cd 2401201047_Aditya_Shibu_COA-Assignment-2-Cache-Mapping_ENCA302
 g++ -std=c++17 -O2 -Wall -Wextra main.cpp -o cache_sim
 ./cache_sim
 sha256sum main.cpp   # must match the hash in Sec. 5
