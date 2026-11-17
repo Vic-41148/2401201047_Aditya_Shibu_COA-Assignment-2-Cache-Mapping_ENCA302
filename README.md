@@ -64,12 +64,7 @@ and reproduction steps.
 
 `Aditya_Shibu_2401201047_COA_Assignment2.pdf` — 19 pages, 8 images.
 
-Report build, from the repository root:
-
-```bash
-python3 ../ASSIGN-MAKER/tools/pipeline.py \
-  Aditya_Shibu_2401201047_COA_Assignment2.md --require-github --no-paginate
-```
+The built PDF is committed next to the source.
 
 ## Source hash
 

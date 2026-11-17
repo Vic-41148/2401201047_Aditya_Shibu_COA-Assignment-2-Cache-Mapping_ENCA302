@@ -40,12 +40,12 @@ mappings and prints one row for each request.
 
 ## 2. Cache Design
 
-Figure 1 shows the same 4-block cache built three ways. Only the number of
-sets changes.
+Figure 1 shows the same 4-block cache built three ways. The set count and the
+way count trade off, so sets x ways is 4 in every case.
 
 ![the same 4 cache blocks under the three mapping rules](screenshots/architecture.png)
 
-Figure 1. All three caches hold 4 blocks. Only the number of sets changes.
+Figure 1. All three caches hold 4 blocks. Sets and ways trade off; sets x ways = 4.
 
 
 
@@ -125,8 +125,8 @@ searches side by side.
 
 A direct-mapped cache compares one tag. A 2-way cache compares two tags and
 then picks a way. A fully associative cache compares every tag in the cache.
-The same request costs more hardware at each step, and this trace returns one
-extra hit for that cost.
+The same request costs more hardware at each step, and this trace returns two
+extra hits for that cost.
 
 
 
@@ -233,8 +233,10 @@ exactly in that freedom:
 - 2-way: a block goes into either way of one fixed set.
 - Direct-mapped: a block goes into one fixed line, with no choice.
 
-More freedom removes conflict misses, so the hit rate rises. The cost is
-hardware. A direct-mapped cache compares one tag per access. A 2-way cache
+More freedom tends to remove conflict misses, so the hit rate tends to rise.
+This trace is not a general rule. A cyclic loop larger than the cache can give
+0 hits under LRU even in a fully associative cache, while a direct-mapped
+cache keeps the blocks that hit its own sets. The cost is hardware. A direct-mapped cache compares one tag per access. A 2-way cache
 compares two tags and needs a 2:1 multiplexer. A fully associative cache
 compares all four tags and needs a 4:1 multiplexer. Real processors use full
 associativity only for small structures such as the TLB, and use
@@ -716,8 +718,9 @@ The trace is built from blocks 0, 4, 8 and 12. All of them are multiples of 4,
 so their low index bits are zero. In the direct-mapped cache and the 2-way
 cache they all land in set 0. Four blocks compete for one line, then for two
 lines. Both caches thrash and show 0 hits. This is a conflict miss, not a
-capacity miss: the cache has free lines in sets 1 to 3, but the mapping does
-not let the blocks use them.
+capacity miss: the direct-mapped cache has free lines in sets 1 to 3, and the
+2-way cache has a free set 1, but the mapping does not let the blocks use
+them.
 
 The fully associative cache has one set with four ways. The four blocks fit
 together, so the repeats of 0 and 4 are temporal-locality hits. Only the first
@@ -731,9 +734,9 @@ the most prone to conflict misses. The 2-way cache sits between the two, which
 is why it is the common choice in real processors.
 
 The model has limits. It uses a block size of one block, one trace, and no
-write policy, so it measures conflict behaviour only. A larger trace or a
-write-back policy would add capacity and coherence effects that this
-simulation does not show.
+write policy, so it measures conflict behaviour only. A larger trace would add
+capacity misses. A write-back policy would add dirty bits and write-back
+traffic. This simulation shows neither.
 
 ## 8. Marking-scheme mapping (5 marks)
 
@@ -759,10 +762,3 @@ sha256sum main.cpp   # must match the hash in Sec. 5
 
 The extra traces from Section 5.4 use the same binary. `./cache_sim --help`
 prints the argument format.
-
-Report build (shared tools), from the repository root:
-
-```bash
-python3 ../ASSIGN-MAKER/tools/pipeline.py \
-  Aditya_Shibu_2401201047_COA_Assignment2.md --require-github
-```
