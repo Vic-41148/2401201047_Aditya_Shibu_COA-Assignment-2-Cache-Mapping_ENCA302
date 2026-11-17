@@ -1,4 +1,4 @@
-# COA Assignment 2 — Q2 Cache Mapping Simulation (C++17)
+# COA Assignment 2: Q2 Cache Mapping Simulation (C++17)
 
 Simulation of a **4-block cache** that sends the same memory block trace
 through the three mapping techniques:
@@ -62,7 +62,7 @@ The report follows the Assignment 1 layout: question, design, results,
 analysis, terminal evidence, full code listing, explanation, marking scheme
 and reproduction steps.
 
-`Aditya_Shibu_2401201047_COA_Assignment2.pdf` — 19 pages, 8 images.
+`Aditya_Shibu_2401201047_COA_Assignment2.pdf`: 19 pages, 8 images.
 
 The built PDF is committed next to the source.
 
